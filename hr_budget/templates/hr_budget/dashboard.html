@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Burqa - Dashboard RH</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script>
         (function() {
@@ -18,7 +21,9 @@
         })();
     </script>
     <style>
-        /* ===== Theme Styles (Dark / Light) ===== */
+        /* ===== Tipografia e Temas ===== */
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
+        .tcell-mono, .font-mono { font-variant-numeric: tabular-nums; }
         html.dark body {
             background: radial-gradient(circle at 50% -10%, #141c30 0%, #080c14 65%) fixed;
             color: #f8fafc;
@@ -263,6 +268,46 @@
                 <p class="card-label text-xs font-semibold uppercase tracking-wider mb-1 transition-colors duration-300">Orçamento Anual (Projetado)</p>
                 <p class="accent-emerald text-3xl font-extrabold transition-colors duration-300">R$ {{ annual_budget|floatformat:2 }}</p>
                 <span class="accent-emerald text-xs mt-2 inline-block transition-colors duration-300">Base 12 meses + Despesas RH</span>
+            </div>
+        </div>
+
+        <!-- Department Distribution Analytics -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="surface-card border rounded-3xl p-6 space-y-4">
+                <h3 class="card-value text-base font-bold flex items-center gap-2">
+                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Headcount por Departamento
+                </h3>
+                <div class="space-y-3">
+                    {% for dept in department_costs %}
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold mb-1">
+                            <span class="card-label">{{ dept.name }}</span>
+                            <span class="tcell-mono font-bold">{{ dept.count }} colabs</span>
+                        </div>
+                        <div class="h-2.5 rounded-full bg-slate-700/20 overflow-hidden">
+                            <div class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-500" style="width: calc({{ dept.count }} * 6%)"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="surface-card border rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <h3 class="card-value text-base font-bold flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/></svg>
+                    Resumo Executivo RH
+                </h3>
+                <div class="grid grid-cols-2 gap-4 my-auto">
+                    <div class="p-4 rounded-2xl border surface-card flex flex-col justify-center">
+                        <span class="card-label text-xs uppercase font-semibold">Média Salarial</span>
+                        <span class="accent-indigo text-xl font-extrabold mt-1">R$ {{ avg_salary|floatformat:2 }}</span>
+                    </div>
+                    <div class="p-4 rounded-2xl border surface-card flex flex-col justify-center">
+                        <span class="card-label text-xs uppercase font-semibold">Encargos Estimados</span>
+                        <span class="accent-emerald text-xl font-extrabold mt-1">35% padrão</span>
+                    </div>
+                </div>
+                <p class="card-note text-xs text-center">Dados consolidados do banco de dados em tempo real.</p>
             </div>
         </div>
 
