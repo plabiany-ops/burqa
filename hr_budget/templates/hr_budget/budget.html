@@ -150,9 +150,9 @@
                 <span class="card-note text-xs mt-2 inline-block transition-colors duration-300">12 meses de salários com reajuste</span>
             </div>
             <div class="surface-card border rounded-2xl p-6 transition-colors duration-300">
-                <p class="card-label text-xs font-semibold uppercase tracking-wider mb-1 transition-colors duration-300">Encargos, Provisões e Benefícios (Ano)</p>
+                <p class="card-label text-xs font-semibold uppercase tracking-wider mb-1 transition-colors duration-300">Custos Além da Folha (Ano)</p>
                 <p id="card-annual-charges" class="accent-indigo text-3xl font-extrabold transition-colors duration-300">R$ {{ annual_charges|floatformat:2 }}</p>
-                <span class="accent-indigo text-xs mt-2 inline-block transition-colors duration-300">INSS, FGTS, férias, 13º, benefícios e provisões</span>
+                <span class="accent-indigo text-xs mt-2 inline-block transition-colors duration-300">Encargos, benefícios, provisões e operação</span>
             </div>
             <div class="surface-card border rounded-2xl p-6 transition-colors duration-300">
                 <p class="card-label text-xs font-semibold uppercase tracking-wider mb-1 transition-colors duration-300">Despesas Operacionais RH (Ano)</p>
@@ -215,7 +215,7 @@
             <div id="quadro-desc-banner" class="p-4 rounded-2xl border bg-indigo-500/10 border-indigo-500/20 text-sm flex items-center gap-3">
                 <span class="text-xl">📊</span>
                 <div>
-                    <strong id="quadro-title-txt" class="font-bold">Quadro 01: Salário Base</strong>
+                    <strong id="quadro-title-txt" class="font-bold">Quadro 01: Salário Base (Referência)</strong>
                     <p id="quadro-desc-txt" class="text-xs mt-0.5 opacity-80">Salário contratual mensal fixo por colaborador.</p>
                 </div>
             </div>
@@ -320,44 +320,44 @@
         };
 
         var QUADROS = [
-            { n: 1, cat: 'Remuneração Direta', name: 'Salário Base', desc: 'Salário contratual mensal fixo por colaborador (referência, não consolida em duplicidade).', rule: 'base', kind: 'informativo', consolidavel: false },
-            { n: 2, cat: 'Remuneração Direta', name: 'Salário com Reajuste Anual', desc: 'Salário atualizado com o dissídio/reajuste da categoria (aplicado a partir de março).', rule: 'reajuste', kind: 'custo', consolidavel: true },
-            { n: 3, cat: 'Benefícios', name: 'Auxílio Alimentação / VR', desc: 'Vale-refeição e auxílio alimentação mensais (isentos de encargos via PAT).', rule: 'vr', kind: 'custo', consolidavel: true },
-            { n: 4, cat: 'Benefícios', name: 'Vale-Transporte', desc: 'Auxílio transporte subsidiado com desconto legal de 6% do salário base.', rule: 'vt', kind: 'custo', consolidavel: true },
-            { n: 5, cat: 'Benefícios', name: 'Plano de Saúde', desc: 'Assistência médica empresarial (coparticipação parcial da empresa).', rule: 'saude', kind: 'custo', consolidavel: true },
+            { n: 1, cat: 'Remuneração Direta', name: 'Salário Base (Referência)', desc: 'Salário contratual mensal fixo para memória de cálculo; não consolida em duplicidade com o Quadro 2.', rule: 'base', kind: 'informativo', consolidavel: false },
+            { n: 2, cat: 'Remuneração Direta', name: 'Salário com Reajuste Anual', desc: 'Salário contratual atualizado pelo dissídio/reajuste da categoria a partir de março.', rule: 'reajuste', kind: 'custo', consolidavel: true },
+            { n: 3, cat: 'Benefícios', name: 'Auxílio Alimentação / Vale-Refeição', desc: 'Vale-refeição e auxílio alimentação mensais, isentos de encargos quando concedidos via PAT.', rule: 'vr', kind: 'custo', consolidavel: true },
+            { n: 4, cat: 'Benefícios', name: 'Vale-Transporte', desc: 'Custo líquido do transporte após a contribuição legal do colaborador de até 6% do salário.', rule: 'vt', kind: 'custo', consolidavel: true },
+            { n: 5, cat: 'Benefícios', name: 'Plano de Saúde', desc: 'Assistência médica empresarial com coparticipação parcial da empresa.', rule: 'saude', kind: 'custo', consolidavel: true },
             { n: 6, cat: 'Benefícios', name: 'Plano Odontológico', desc: 'Assistência odontológica por colaborador.', rule: 'odonto', kind: 'custo', consolidavel: true },
-            { n: 7, cat: 'Benefícios', name: 'Seguro de Vida em Grupo', desc: 'Apólice de seguro de vida obrigatória e opcional.', rule: 'seguro', kind: 'custo', consolidavel: true },
-            { n: 8, cat: 'Benefícios', name: 'Previdência Privada / Complementar', desc: 'Plano de previdência patrocinado (match de contribuição).', rule: 'prev', kind: 'custo', consolidavel: true },
-            { n: 9, cat: 'Benefícios', name: 'Auxílio Educação', desc: 'Reembolso ou subsídio para graduação, pós e cursos de idiomas.', rule: 'educacao', kind: 'custo', consolidavel: true },
-            { n: 10, cat: 'Benefícios', name: 'Auxílio Creche / Babá', desc: 'Reembolso creche conforme legislação para colaboradores elegíveis.', rule: 'creche', kind: 'custo', consolidavel: true },
-            { n: 11, cat: 'Benefícios', name: 'Complementos e Bem-estar', desc: 'Auxílio home office, Gympass e cestas de benefícios flexíveis.', rule: 'bemestar', kind: 'custo', consolidavel: true },
-            { n: 12, cat: 'Provisões e Riscos', name: '13º Salário (provisão mensal)', desc: 'Provisão contábil mensal de 1/12 avos para pagamento do 13º.', rule: 'prov13', kind: 'provisao', consolidavel: true },
+            { n: 7, cat: 'Benefícios', name: 'Seguro de Vida em Grupo', desc: 'Apólice de seguro de vida em grupo contratada pela empresa.', rule: 'seguro', kind: 'custo', consolidavel: true },
+            { n: 8, cat: 'Benefícios', name: 'Previdência Privada / Complementar', desc: 'Plano de previdência patrocinado com contrapartida da empresa.', rule: 'prev', kind: 'custo', consolidavel: true },
+            { n: 9, cat: 'Benefícios', name: 'Auxílio Educação', desc: 'Reembolso ou subsídio para graduação, pós-graduação e cursos de idiomas.', rule: 'educacao', kind: 'custo', consolidavel: true },
+            { n: 10, cat: 'Benefícios', name: 'Auxílio Creche / Babá', desc: 'Reembolso creche conforme legislação para colaboradores com dependentes elegíveis.', rule: 'creche', kind: 'custo', consolidavel: true },
+            { n: 11, cat: 'Benefícios', name: 'Benefícios Flexíveis e Bem-estar', desc: 'Auxílio home office, Gympass e cestas de benefícios flexíveis.', rule: 'bemestar', kind: 'custo', consolidavel: true },
+            { n: 12, cat: 'Provisões e Riscos', name: '13º Salário (Provisão Mensal)', desc: 'Provisão contábil mensal de 1/12 avos para pagamento do 13º salário.', rule: 'prov13', kind: 'provisao', consolidavel: true },
             { n: 13, cat: 'Provisões e Riscos', name: 'Férias + 1/3', desc: 'Provisão mensal de férias e abono constitucional; no modo Dias mostra o gozo por colaborador.', rule: 'provferias', kind: 'provisao', consolidavel: true, days: true },
             { n: 14, cat: 'Provisões e Riscos', name: 'Provisão de Aviso Prévio', desc: 'Reserva mensal para aviso prévio indenizado em cenário de turnover.', rule: 'aviso', kind: 'provisao', consolidavel: true },
             { n: 15, cat: 'Provisões e Riscos', name: 'Provisão de Multa FGTS 40%', desc: 'Reserva mensal para multa rescisória do FGTS em cenário de turnover.', rule: 'multa', kind: 'provisao', consolidavel: true },
-            { n: 16, cat: 'Adicionais e Variáveis', name: 'Horas Extras', desc: 'Remuneração de horas extraordinárias e reflexos.', rule: 'he', kind: 'custo', consolidavel: true },
-            { n: 17, cat: 'Adicionais e Variáveis', name: 'Adicional Noturno', desc: 'Adicional para jornadas em horário noturno (22h às 5h).', rule: 'noturno', kind: 'custo', consolidavel: true },
-            { n: 18, cat: 'Adicionais e Variáveis', name: 'Periculosidade / Insalubridade', desc: 'Adicionais legais de risco ou insalubridade do posto.', rule: 'peric', kind: 'custo', consolidavel: true },
-            { n: 19, cat: 'Adicionais e Variáveis', name: 'Comissões Comerciais', desc: 'Variáveis de vendas por atingimento de metas da área comercial.', rule: 'comissao', kind: 'custo', consolidavel: true },
-            { n: 20, cat: 'Adicionais e Variáveis', name: 'PLR / Bônus de Desempenho', desc: 'Participação nos lucros e resultados ou bônus anual por metas.', rule: 'plr', kind: 'custo', consolidavel: true },
-            { n: 21, cat: 'Adicionais e Variáveis', name: 'Gratificações de Função / Prêmios', desc: 'Gratificações de cargo de confiança e premiações internas.', rule: 'grat', kind: 'custo', consolidavel: true },
-            { n: 22, cat: 'Adicionais e Variáveis', name: 'Ajuda de Custo / Diárias', desc: 'Reembolsos de viagens, hospedagem e deslocamentos operacionais.', rule: 'ajuda', kind: 'custo', consolidavel: true },
-            { n: 23, cat: 'Encargos Sociais', name: 'INSS Patronal', desc: 'Contribuição previdenciária patronal sobre a folha de pagamento.', rule: 'inss', kind: 'encargo', consolidavel: true },
-            { n: 24, cat: 'Encargos Sociais', name: 'RAT / GILRAT', desc: 'Seguro de Acidentes do Trabalho conforme grau de risco da atividade.', rule: 'rat', kind: 'encargo', consolidavel: true },
+            { n: 16, cat: 'Adicionais e Variáveis', name: 'Horas Extras', desc: 'Remuneração de horas extraordinárias e reflexos para colaboradores CLT.', rule: 'he', kind: 'custo', consolidavel: true },
+            { n: 17, cat: 'Adicionais e Variáveis', name: 'Adicional Noturno', desc: 'Adicional para jornadas em horário noturno (22h às 5h) de colaboradores CLT.', rule: 'noturno', kind: 'custo', consolidavel: true },
+            { n: 18, cat: 'Adicionais e Variáveis', name: 'Periculosidade / Insalubridade', desc: 'Adicionais legais de risco ou insalubridade do posto para colaboradores CLT.', rule: 'peric', kind: 'custo', consolidavel: true },
+            { n: 19, cat: 'Adicionais e Variáveis', name: 'Comissões Comerciais', desc: 'Variáveis de vendas por atingimento de metas da área comercial, inclusive PJ.', rule: 'comissao', kind: 'custo', consolidavel: true },
+            { n: 20, cat: 'Adicionais e Variáveis', name: 'PLR / Bônus de Desempenho', desc: 'Participação nos lucros e resultados ou bônus anual por metas para colaboradores CLT.', rule: 'plr', kind: 'custo', consolidavel: true },
+            { n: 21, cat: 'Adicionais e Variáveis', name: 'Gratificações de Função / Prêmios', desc: 'Gratificações de cargo de confiança e premiações internas para colaboradores CLT.', rule: 'grat', kind: 'custo', consolidavel: true },
+            { n: 22, cat: 'Adicionais e Variáveis', name: 'Ajuda de Custo / Diárias', desc: 'Reembolsos de viagens, hospedagem e deslocamentos para vendas, operações e liderança.', rule: 'ajuda', kind: 'custo', consolidavel: true },
+            { n: 23, cat: 'Encargos Sociais', name: 'INSS Patronal', desc: 'Contribuição previdenciária patronal sobre a folha de pagamento CLT.', rule: 'inss', kind: 'encargo', consolidavel: true },
+            { n: 24, cat: 'Encargos Sociais', name: 'RAT / GILRAT', desc: 'Seguro de Acidentes do Trabalho conforme o grau de risco da atividade.', rule: 'rat', kind: 'encargo', consolidavel: true },
             { n: 25, cat: 'Encargos Sociais', name: 'Contribuições a Terceiros / Sistema S', desc: 'SENAI, SESC, SEBRAE, INCRA e demais contribuições do Sistema S.', rule: 'sistemas', kind: 'encargo', consolidavel: true },
             { n: 26, cat: 'Encargos Sociais', name: 'FGTS', desc: 'Depósito mensal obrigatório na conta vinculada do FGTS.', rule: 'fgts', kind: 'encargo', consolidavel: true },
-            { n: 27, cat: 'Encargos Sociais', name: 'PIS / PASEP', desc: 'Contribuição social incidente sobre a folha de salários.', rule: 'pis', kind: 'encargo', consolidavel: true },
-            { n: 28, cat: 'Encargos Sociais', name: 'Salário-Educação', desc: 'Encargo educacional corporativo obrigatório para empresas do regime.', rule: 'salarioed', kind: 'encargo', consolidavel: true },
-            { n: 29, cat: 'Encargos Sociais', name: 'Encargos sobre o 13º', desc: 'Provisão de INSS, FGTS, RAT e demais encargos sobre a gratificação natalina.', rule: 'enc13', kind: 'encargo', consolidavel: true },
-            { n: 30, cat: 'Encargos Sociais', name: 'Encargos sobre Férias + 1/3', desc: 'Incidências de encargos sobre a provisão de férias e 1/3 constitucional.', rule: 'encferias', kind: 'encargo', consolidavel: true },
-            { n: 31, cat: 'Provisões e Riscos', name: 'Provisão para Afastamentos / Absenteísmo', desc: 'Custo de substituição ou complementação em afastamentos prolongados; no modo Dias mostra os dias provisionados.', rule: 'provafast', kind: 'provisao', consolidavel: true, days: true },
+            { n: 27, cat: 'Encargos Sociais', name: 'PIS / PASEP', desc: 'Contribuição social incidente sobre a folha de salários CLT.', rule: 'pis', kind: 'encargo', consolidavel: true },
+            { n: 28, cat: 'Encargos Sociais', name: 'Salário-Educação', desc: 'Contribuição educacional obrigatória incidente sobre a folha de salários.', rule: 'salarioed', kind: 'encargo', consolidavel: true },
+            { n: 29, cat: 'Encargos Sociais', name: 'Encargos sobre o 13º', desc: 'INSS, FGTS, RAT e demais encargos incidentes sobre a gratificação natalina.', rule: 'enc13', kind: 'encargo', consolidavel: true },
+            { n: 30, cat: 'Encargos Sociais', name: 'Encargos sobre Férias + 1/3', desc: 'INSS, FGTS, RAT e demais encargos incidentes sobre a provisão de férias e 1/3.', rule: 'encferias', kind: 'encargo', consolidavel: true },
+            { n: 31, cat: 'Provisões e Riscos', name: 'Provisão para Afastamentos e Absenteísmo', desc: 'Custo de substituição ou complementação em afastamentos; no modo Dias mostra os dias provisionados.', rule: 'provafast', kind: 'provisao', consolidavel: true, days: true },
             { n: 32, cat: 'Provisões e Riscos', name: 'Contingência para Passivo Trabalhista', desc: 'Reserva financeira prudencial para riscos e litígios trabalhistas.', rule: 'contingencia', kind: 'provisao', consolidavel: true },
-            { n: 33, cat: 'Atração e Desenvolvimento', name: 'Recrutamento & Seleção', desc: 'Custo médio por contratação (plataformas de vagas, headhunters, testes).', rule: 'rs', kind: 'custo', consolidavel: true },
-            { n: 34, cat: 'Atração e Desenvolvimento', name: 'Onboarding e Integração', desc: 'Kits boas-vindas, exames admissionais e treinamentos de integração.', rule: 'onboarding', kind: 'custo', consolidavel: true },
-            { n: 35, cat: 'Atração e Desenvolvimento', name: 'Treinamento & Desenvolvimento / Educação Corporativa', desc: 'Capacitação técnica, liderança, plataformas de EAD e certificações.', rule: 'td', kind: 'custo', consolidavel: true },
-            { n: 36, cat: 'Atração e Desenvolvimento', name: 'Software, Ferramentas e Licenças', desc: 'Licenças de sistemas por colaborador (ERP, ferramentas de produtividade).', rule: 'software', kind: 'custo', consolidavel: true },
-            { n: 37, cat: 'Operação e Indiretos', name: 'Uniformes, EPI e Identidade', desc: 'Fornecimento de vestimenta profissional, EPIs e crachás.', rule: 'epi', kind: 'custo', consolidavel: true },
-            { n: 38, cat: 'Operação e Indiretos', name: 'Comunicação e Posto de Trabalho', desc: 'Linha corporativa, chip de celular, internet e amortização de mobiliário.', rule: 'postotrab', kind: 'custo', consolidavel: true },
+            { n: 33, cat: 'Atração e Desenvolvimento', name: 'Recrutamento & Seleção', desc: 'Custo médio por contratação: plataformas de vagas, headhunters e testes.', rule: 'rs', kind: 'custo', consolidavel: true },
+            { n: 34, cat: 'Atração e Desenvolvimento', name: 'Onboarding e Integração', desc: 'Kits de boas-vindas, exames admissionais e treinamentos de integração.', rule: 'onboarding', kind: 'custo', consolidavel: true },
+            { n: 35, cat: 'Atração e Desenvolvimento', name: 'Treinamento, Desenvolvimento e Certificações', desc: 'Capacitação técnica, liderança, plataformas de EAD e certificações.', rule: 'td', kind: 'custo', consolidavel: true },
+            { n: 36, cat: 'Atração e Desenvolvimento', name: 'Software, Ferramentas e Licenças', desc: 'Licenças de sistemas por colaborador: ERP e ferramentas de produtividade.', rule: 'software', kind: 'custo', consolidavel: true },
+            { n: 37, cat: 'Operação e Indiretos', name: 'Uniformes, EPI e Identificação', desc: 'Vestimenta profissional, EPIs e crachás para funções operacionais.', rule: 'epi', kind: 'custo', consolidavel: true },
+            { n: 38, cat: 'Operação e Indiretos', name: 'Comunicação, Mobilidade e Posto de Trabalho', desc: 'Linha corporativa, chip de celular, internet e amortização de mobiliário.', rule: 'postotrab', kind: 'custo', consolidavel: true },
             { n: 39, cat: 'Operação e Indiretos', name: 'Overhead Administrativo de RH', desc: 'Rateio de custos estruturais da gestão de pessoas e folha terceirizada.', rule: 'overhead', kind: 'custo', consolidavel: true }
         ];
 
@@ -400,8 +400,8 @@
         function appliesTo(q, e) {
             var t = empType(e);
             if (t === 'CLT') return true;
-            if (t === 'PJ') return !(q.n >= 12 && q.n <= 15) && !(q.n >= 23 && q.n <= 32);
-            if (t === 'Estágio') return [1, 3, 4].indexOf(q.n) > -1 || q.n >= 33;
+            if (t === 'PJ') return [12,13,14,15,16,17,18,20,21,23,24,25,26,27,28,29,30,31,32].indexOf(q.n) === -1;
+            if (t === 'Estágio') return [1, 2, 3, 4].indexOf(q.n) > -1 || q.n >= 33;
             return true;
         }
 
@@ -440,7 +440,7 @@
                 case 'base': return empBase(emp);
                 case 'reajuste': return base;
                 case 'vr': return PREMISSAS.vr;
-                case 'vt': return Math.min(base * PREMISSAS.vtPct, PREMISSAS.vtMax);
+                case 'vt': return Math.max(0, PREMISSAS.vtMax - Math.min(base * PREMISSAS.vtPct, PREMISSAS.vtMax));
                 case 'saude': return PREMISSAS.saude;
                 case 'odonto': return PREMISSAS.odonto;
                 case 'seguro': return PREMISSAS.seguro;
@@ -454,7 +454,7 @@
                 case 'comissao': return isSales(emp) ? base * (emp.comissaoPct || PREMISSAS.comissaoPct) : 0;
                 case 'plr': return PREMISSAS.plrMeses.indexOf(monthIndex) > -1 ? base * PREMISSAS.plrPct : 0;
                 case 'grat': return /Gerente|Diretor|Diretora|Head|Arquiteta|Tech Lead|Controller/.test(cargo) ? PREMISSAS.grat : 0;
-                case 'ajuda': return PREMISSAS.ajuda;
+                case 'ajuda': return (isSales(emp) || isOps(emp) || /Gerente|Diretor|Diretora|Head|Tech Lead|Controller|Arquiteta|Arquiteto/.test(cargo)) ? PREMISSAS.ajuda : 0;
                 case 'inss': return BUDGET_STATE.regime === 'simples' ? 0 : base * PREMISSAS.inss;
                 case 'rat': return BUDGET_STATE.regime === 'simples' ? 0 : base * PREMISSAS.rat;
                 case 'sistemas': return BUDGET_STATE.regime === 'simples' ? 0 : base * PREMISSAS.sistemas;
@@ -474,7 +474,7 @@
                 case 'td': return PREMISSAS.td + PREMISSAS.edcorp;
                 case 'edcorp': return PREMISSAS.edcorp;
                 case 'software': return PREMISSAS.software;
-                case 'epi': return PREMISSAS.epi;
+                case 'epi': return isOps(emp) ? PREMISSAS.epi : 0;
                 case 'postotrab': return PREMISSAS.postotrab;
                 case 'overhead': return PREMISSAS.overhead;
                 default: return 0;
