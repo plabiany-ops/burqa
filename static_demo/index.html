@@ -365,11 +365,13 @@ html.dark .mod-desc{ color:#94a3b8; } html.light .mod-desc{ color:#475569; }
                 <thead>
                     <tr class="border-b text-xs uppercase tracking-wider card-label">
                         <th class="p-5 font-semibold">Colaborador</th>
+                        <th class="p-5 font-semibold">CPF</th>
                         <th class="p-5 font-semibold">Cargo</th>
                         <th class="p-5 font-semibold">Departamento</th>
                         <th class="p-5 font-semibold text-right">Salário Base</th>
                         <th class="p-5 font-semibold text-center">Contrato</th>
-                        <th class="p-5 font-semibold text-center">Custo Total/Mês</th>
+                        <th class="p-5 font-semibold text-center">Status</th>
+                        <th class="p-5 font-semibold text-center">Férias</th>
                     </tr>
                 </thead>
                 <tbody id="emp-tbody" class="divide-y tbody-divide"></tbody>
@@ -418,21 +420,21 @@ html.dark .mod-desc{ color:#94a3b8; } html.light .mod-desc{ color:#475569; }
         <div class="surface-card border rounded-2xl p-5">
             <p class="card-label text-xs font-semibold uppercase tracking-wider mb-1">Orçamento do Ano</p>
             <p id="budg-total" class="card-value text-2xl font-extrabold">R$ —</p>
-            <p class="card-note text-xs mt-1">Estipulado</p>
+            <p class="card-note text-xs mt-1">Custo consolidado dos 39 quadros</p>
         </div>
         <div class="surface-card border rounded-2xl p-5">
-            <p class="card-label text-xs font-semibold uppercase tracking-wider mb-1">Executado</p>
+            <p class="card-label text-xs font-semibold uppercase tracking-wider mb-1">Custo Médio Mensal</p>
             <p id="budg-spent" class="accent-emerald text-2xl font-extrabold">R$ —</p>
-            <p class="card-note text-xs mt-1">Até o momento</p>
+            <p class="card-note text-xs mt-1">Média dos 12 meses</p>
         </div>
         <div class="surface-card border rounded-2xl p-5">
             <p class="card-label text-xs font-semibold uppercase tracking-wider mb-1">Custo por Head</p>
             <p id="budg-cph" class="accent-indigo text-2xl font-extrabold">R$ —</p>
-            <p class="card-note text-xs mt-1">Média empresa</p>
+            <p class="card-note text-xs mt-1">Média empresa/mês</p>
         </div>
         <div class="surface-card border rounded-2xl p-5">
-            <p class="card-label text-xs font-semibold uppercase tracking-wider mb-1">Consumo do Orçamento</p>
-            <p id="budg-pct" class="accent-violet text-2xl font-extrabold">—%</p>
+            <p class="card-label text-xs font-semibold uppercase tracking-wider mb-1">Headcount Elegível</p>
+            <p id="budg-pct" class="accent-violet text-2xl font-extrabold">—</p>
             <div class="progress-track h-2.5 rounded-full mt-3 overflow-hidden">
                 <div id="budg-pct-bar" class="h-full rounded-full transition-all duration-700" style="width:0%;background:linear-gradient(90deg,#22d3ee,#a78bfa)"></div>
             </div>
@@ -456,6 +458,16 @@ html.dark .mod-desc{ color:#94a3b8; } html.light .mod-desc{ color:#475569; }
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </button>
             </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="inline-flex rounded-2xl border overflow-hidden">
+                    <button id="mode-money" onclick="setQuadroMode('money')" class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors">R$</button>
+                    <button id="mode-days" onclick="setQuadroMode('days')" class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-l">Dias</button>
+                </div>
+                <select id="regime-select" onchange="setRegime(this.value)" class="surface-card border rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="presumido">Presumido / Real</option>
+                    <option value="simples">Simples Nacional</option>
+                </select>
+            </div>
         </div>
 
         <div id="quadro-desc-banner" class="p-4 rounded-2xl border bg-indigo-500/10 border-indigo-500/20 text-sm flex items-center gap-3">
@@ -465,6 +477,7 @@ html.dark .mod-desc{ color:#94a3b8; } html.light .mod-desc{ color:#475569; }
                 <p id="quadro-desc-txt" class="text-xs mt-0.5 opacity-80">Salário contratual mensal fixo por colaborador.</p>
             </div>
         </div>
+        <div id="quadro-note" class="hidden p-3 rounded-2xl border border-dashed text-xs opacity-80"></div>
 
         <div class="overflow-x-auto rounded-2xl border">
             <table class="w-full text-left border-collapse" id="quadro-table">
@@ -602,6 +615,41 @@ html.dark .mod-desc{ color:#94a3b8; } html.light .mod-desc{ color:#475569; }
     </div>
 </section>
 
+<!-- ==================== MODAL FÉRIAS ==================== -->
+<div id="vac-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4" style="background:rgba(2,6,23,0.72)">
+    <div class="surface-card border rounded-3xl p-6 w-full max-w-md space-y-5 shadow-2xl">
+        <div>
+            <p class="card-label text-xs font-semibold uppercase tracking-wider">Editar férias</p>
+            <h3 id="vac-name" class="twhite text-xl font-extrabold mt-1">Colaborador</h3>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="card-label block text-xs font-semibold uppercase tracking-wider mb-2">Mês de gozo</label>
+                <select id="vac-month" class="form-input w-full px-4 py-3 rounded-2xl border text-sm">
+                    <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+                    <option value="3">Março</option><option value="4">Abril</option>
+                    <option value="5">Maio</option><option value="6">Junho</option>
+                    <option value="7">Julho</option><option value="8">Agosto</option>
+                    <option value="9">Setembro</option><option value="10">Outubro</option>
+                    <option value="11">Novembro</option><option value="12">Dezembro</option>
+                </select>
+            </div>
+            <div>
+                <label class="card-label block text-xs font-semibold uppercase tracking-wider mb-2">Dias de férias</label>
+                <input id="vac-days" type="number" min="0" max="30" value="30" class="form-input w-full px-4 py-3 rounded-2xl border text-sm">
+            </div>
+            <div class="col-span-2">
+                <label class="card-label block text-xs font-semibold uppercase tracking-wider mb-2">Dias de abono (até 10)</label>
+                <input id="vac-abono" type="number" min="0" max="10" value="0" class="form-input w-full px-4 py-3 rounded-2xl border text-sm">
+            </div>
+        </div>
+        <div class="flex justify-end gap-3">
+            <button onclick="closeVacation()" class="px-5 py-2.5 rounded-2xl border text-sm font-semibold">Cancelar</button>
+            <button onclick="saveVacation()" class="px-5 py-2.5 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-cyan-600 to-indigo-600">Salvar</button>
+        </div>
+    </div>
+</div>
+
 <!-- ==================== SCRIPTS ==================== -->
 <script>
 "use strict";
@@ -618,6 +666,8 @@ var STATE = {
     simHires: 0,
     simSalary: 1800,
     theme: localStorage.getItem('burqa_theme') || 'dark',
+    quadroMode: 'money',
+    regime: 'presumido',
     sim: { rea: 0, hir: 0, sal: 1800, enc: 35 }
 };
 
@@ -664,6 +714,17 @@ var COLABS = [
     { nome:"Thiago Antunes", cpf:"945.221.778-50", dept:"Operações",   cargo:"Supervisor de Manutenção",    sal:6400,  tipo:"CLT", status:"Ativo" },
     { nome:"Vanessa Guimarães",cpf:"578.114.332-91", dept:"Financeiro", cargo:"Analista de FP&A",            sal:7600,  tipo:"CLT", status:"Ativo" }
 ];
+
+COLABS.forEach(function (e, i) {
+    e.feriasMes = e.feriasMes || ((i % 12) + 1);
+    e.feriasDias = e.feriasDias || 30;
+    e.abonoDias = e.abonoDias !== undefined ? e.abonoDias : [0, 5, 10][i % 3];
+    e.dependentes = e.dependentes !== undefined ? e.dependentes : (i % 4);
+    e.noturno = e.noturno !== undefined ? e.noturno : (e.dept === 'Operações' && i % 2 === 0);
+    e.peric = e.peric !== undefined ? e.peric : (e.dept === 'Operações' && i % 3 === 0);
+    e.comissaoPct = e.comissaoPct !== undefined ? e.comissaoPct : (e.dept === 'Comercial' ? 0.25 : 0);
+    e.nivel = e.nivel || (/Gerente|Diretor|Diretora|Head|Arquiteta|Tech Lead|Controller/.test(e.cargo) ? 'Gestão' : 'Pleno');
+});
 
 var EXTRAS = {
     "Tecnologia":   { benef: 240,  extra: "Home-office e licenças" },
@@ -754,6 +815,10 @@ function refreshHashDelta() { refreshHash(); }
 function fmtBr(n) { return n.toLocaleString('pt-BR'); }
 function fmtCur(n) { return 'R$ ' + fmtBr(Math.round(n)); }
 function fmtCur1(n) { return fmtCur(Math.round(n)); }
+function fmt(n) { return fmtBr(Math.round(n)); }
+function initials(name) {
+    return String(name || '').split(/\s+/).filter(Boolean).slice(0, 2).map(function (p) { return p.charAt(0).toUpperCase(); }).join('');
+}
 var VS = { 'Ativo': 'emerald', 'Férias': 'amber', 'Desligado': 'rose', 'Afastado': 'amber', 'Suspenso': 'rose' };
 function statusPill(s) {
     var c = VS[s] || 'indigo';
@@ -864,7 +929,10 @@ function renderEmployees() {
         var start = (pg - 1) * PER_PAGE;
         var slice = rows.slice(start, start + PER_PAGE);
         var html = '';
+        var mesesCurtos = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
         slice.forEach(function (e) {
+            var mesFerias = mesesCurtos[(Number(e.feriasMes) || 1) - 1];
+            var feriasTxt = mesFerias + ' · ' + (e.feriasDias || 30) + 'd' + ((e.abonoDias || 0) > 0 ? ' + ' + e.abonoDias + 'd abono' : '');
             html += '<tr class="card-hover transition-colors duration-150">' +
                 '<td class="p-5"><div class="flex items-center gap-3">' +
                 '<div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 twhite" style="background:linear-gradient(135deg,#6366f1,#a855f7)">' + initials(e.nome) + '</div>' +
@@ -874,7 +942,9 @@ function renderEmployees() {
                 '<td class="p-5 tcell-strong text-sm">' + e.cargo + '</td>' +
                 '<td class="p-5 tcell-mono text-sm">' + e.dept + '</td>' +
                 '<td class="p-5 tcell-mono text-sm">' + fmtCur(e.sal) + '</td>' +
-                '<td class="p-5">' + statusPill(e.status) + '</td>' +
+                '<td class="p-5 text-center">' + typePill(e.tipo) + '</td>' +
+                '<td class="p-5 text-center">' + statusPill(e.status) + '</td>' +
+                '<td class="p-5 text-center"><button onclick="openVacation(\'' + e.cpf + '\')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold hover:opacity-80 transition-opacity" title="Editar férias">' + feriasTxt + '</button></td>' +
                 '</tr>';
         });
         tbody.innerHTML = html;
@@ -893,78 +963,123 @@ function empPaging(dir) { pg += dir; renderEmployees(); }
 var ENC = 0.35;
 if (typeof STATE.quadro === 'undefined') STATE.quadro = 0;
 
+var PREMISSAS = {
+    reajuste: 0.055, mesReajuste: 2,
+    vr: 650, vtPct: 0.06, vtMax: 220,
+    saude: 520, odonto: 65, seguro: 45, prevPct: 0.03,
+    educacao: 300, creche: 400, bemestar: 150,
+    hePct: 0.05, heExtraPct: 0.15, heMeses: [5, 11],
+    noturnoPct: 0.20, pericPct: 0.30, comissaoPct: 0.25,
+    plrPct: 0.80, plrMeses: [5, 11], grat: 1200, ajuda: 250,
+    inss: 0.20, rat: 0.02, sistemas: 0.033, fgts: 0.08, pis: 0.01, salarioEd: 0.025,
+    avisoPct: 0.02, multaPct: 0.035, afastPct: 0.015, afastDias: 1.5, contingenciaPct: 0.02,
+    rs: 180, onboarding: 350, onboardingRec: 20, td: 220, edcorp: 110,
+    software: 350, epi: 120, postotrab: 180, overhead: 210
+};
+
 var QUADROS = [
-    { n: 1, cat: 'Remuneração Direta', name: 'Salário Base', desc: 'Salário contratual mensal fixo por colaborador.', rule: 'base' },
-    { n: 2, cat: 'Remuneração Direta', name: 'Salário com Reajuste Anual', desc: 'Salário atualizado com o dissídio/reajuste da categoria (aplicado a partir de março).', rule: 'reajuste' },
-    { n: 3, cat: 'Benefícios', name: 'Auxílio Alimentação / VR', desc: 'Vale-refeição e auxílio alimentação mensais (isentos de encargos via PAT).', rule: 'vr' },
-    { n: 4, cat: 'Benefícios', name: 'Vale-Transporte', desc: 'Auxílio transporte subsidiado com desconto legal de 6% do salário base.', rule: 'vt' },
-    { n: 5, cat: 'Benefícios', name: 'Plano de Saúde', desc: 'Assistência médica empresarial (coparticipação parcial da empresa).', rule: 'saude' },
-    { n: 6, cat: 'Benefícios', name: 'Plano Odontológico', desc: 'Assistência odontológica por colaborador.', rule: 'odonto' },
-    { n: 7, cat: 'Benefícios', name: 'Seguro de Vida em Grupo', desc: 'Apólice de seguro de vida obrigatória e opcional.', rule: 'seguro' },
-    { n: 8, cat: 'Benefícios', name: 'Previdência Privada / Complementar', desc: 'Plano de previdência patrocinado (match de contribuição).', rule: 'prev' },
-    { n: 9, cat: 'Benefícios', name: 'Auxílio Educação', desc: 'Reembolso ou subsídio para graduação, pós e cursos de idiomas.', rule: 'educacao' },
-    { n: 10, cat: 'Benefícios', name: 'Auxílio Creche / Babá', desc: 'Reembolso creche conforme legislação para colaboradores elegíveis.', rule: 'creche' },
-    { n: 11, cat: 'Benefícios', name: 'Complementos e Bem-estar', desc: 'Auxílio home office, Gympass e cestas de benefícios flexíveis.', rule: 'bemestar' },
-    { n: 12, cat: 'Adicionais e Variáveis', name: 'Horas Extras (+50% e +100%)', desc: 'Remuneração de horas extraordinárias e reflexos.', rule: 'he' },
-    { n: 13, cat: 'Adicionais e Variáveis', name: 'Adicional Noturno', desc: 'Adicional para jornadas em horário noturno (22h às 5h).', rule: 'noturno' },
-    { n: 14, cat: 'Adicionais e Variáveis', name: 'Periculosidade / Insalubridade', desc: 'Adicionais legais de risco ou insalubridade do posto.', rule: 'peric' },
-    { n: 15, cat: 'Adicionais e Variáveis', name: 'Comissões Comerciais', desc: 'Variáveis de vendas por atingimento de metas da área comercial.', rule: 'comissao' },
-    { n: 16, cat: 'Adicionais e Variáveis', name: 'PLR / Bônus de Desempenho', desc: 'Participação nos lucros e resultados ou bônus anual por metas.', rule: 'plr' },
-    { n: 17, cat: 'Adicionais e Variáveis', name: 'Gratificações de Função / Prêmios', desc: 'Gratificações de cargo de confiança e premiações internas.', rule: 'grat' },
-    { n: 18, cat: 'Adicionais e Variáveis', name: 'Ajuda de Custo / Diárias', desc: 'Reembolsos de viagens, hospedagem e deslocamentos operacionais.', rule: 'ajuda' },
-    { n: 19, cat: 'Encargos Sociais', name: 'INSS Patronal (20%)', desc: 'Contribuição previdenciária patronal sobre a folha de pagamento.', rule: 'inss' },
-    { n: 20, cat: 'Encargos Sociais', name: 'RAT / GILRAT (1% a 3%)', desc: 'Seguro de Acidentes do Trabalho conforme grau de risco da atividade.', rule: 'rat' },
-    { n: 21, cat: 'Encargos Sociais', name: 'Contribuições a Terceiros (Sistema S)', desc: 'SENAI, SESC, SEBRAE, INCRA e Salário-Educação agregados.', rule: 'sistemas' },
-    { n: 22, cat: 'Encargos Sociais', name: 'FGTS da Empresa (8%)', desc: 'Depósito mensal obrigatório na conta vinculada do FGTS.', rule: 'fgts' },
-    { n: 23, cat: 'Encargos Sociais', name: 'PIS / PASEP sobre a Folha (1%)', desc: 'Contribuição social incidente sobre a folha de salários.', rule: 'pis' },
-    { n: 24, cat: 'Encargos Sociais', name: 'Salário-Educação (2,5%)', desc: 'Encargo educacional corporativo obrigatório para empresas do regime.', rule: 'salarioed' },
-    { n: 25, cat: 'Encargos Sociais', name: 'Encargos sobre o 13º Salário', desc: 'Provisão de INSS, FGTS e RAT incidentes sobre a gratificação natalina.', rule: 'enc13' },
-    { n: 26, cat: 'Encargos Sociais', name: 'Encargos Reincidentes sobre Férias', desc: 'Incidências de encargos sobre o gozo de férias e 1/3 constitucional.', rule: 'encferias' },
-    { n: 27, cat: 'Provisões e Riscos', name: 'Provisão de 13º Salário (1/12)', desc: 'Provisão contábil mensal de 1/12 avos para pagamento do 13º.', rule: 'prov13' },
-    { n: 28, cat: 'Provisões e Riscos', name: 'Provisão de Férias + 1/3 (1,33/12)', desc: 'Provisão mensal para o gozo de 30 dias de férias e abono constitucional.', rule: 'provferias' },
-    { n: 29, cat: 'Provisões e Riscos', name: 'Provisão para Rescisão (Turnover)', desc: 'Reserva para aviso prévio indenizado e multa rescisória do FGTS (40%).', rule: 'provrescisao' },
-    { n: 30, cat: 'Provisões e Riscos', name: 'Provisão para Afastamentos / Doenças', desc: 'Custo de substituição ou complementação em afastamentos prolongados (INSS).', rule: 'provafast' },
-    { n: 31, cat: 'Provisões e Riscos', name: 'Contingência para Passivo Trabalhista', desc: 'Reserva financeira prudencial para riscos e litígios trabalhistas.', rule: 'contingencia' },
-    { n: 32, cat: 'Atração e Desenvolvimento', name: 'Recrutamento & Seleção (R&S)', desc: 'Custo médio por contratação (plataformas de vagas, headhunters, testes).', rule: 'rs' },
-    { n: 33, cat: 'Atração e Desenvolvimento', name: 'Onboarding e Integração', desc: 'Kits boas-vindas, exames admissionais e treinamentos de integração.', rule: 'onboarding' },
-    { n: 34, cat: 'Atração e Desenvolvimento', name: 'Treinamento & Desenvolvimento (T&D)', desc: 'Orçamento de capacitação técnica, liderança e workshops.', rule: 'td' },
-    { n: 35, cat: 'Atração e Desenvolvimento', name: 'Educação Corporativa / Licenças', desc: 'Plataformas de EAD, assinaturas de livros, congressos e certificações.', rule: 'edcorp' },
-    { n: 36, cat: 'Atração e Desenvolvimento', name: 'Software e Ferramentas (SaaS)', desc: 'Licenças de sistemas por colaborador (ERP, ferramentas de produtividade).', rule: 'software' },
-    { n: 37, cat: 'Operação e Indiretos', name: 'Uniformes, EPI e Identidade', desc: 'Fornecimento de vestimenta profissional, EPIs e crachás.', rule: 'epi' },
-    { n: 38, cat: 'Operação e Indiretos', name: 'Comunicação e Posto de Trabalho', desc: 'Linha corporativa, chip de celular, internet e amortização de mobiliário.', rule: 'postotrab' },
-    { n: 39, cat: 'Operação e Indiretos', name: 'Despesas Administrativas de RH (Overhead)', desc: 'Rateio de custos estruturais da gestão de pessoas e folha terceirizada.', rule: 'overhead' }
+    { n: 1, cat: 'Remuneração Direta', name: 'Salário Base', desc: 'Salário contratual mensal fixo por colaborador (referência, não consolida em duplicidade).', rule: 'base', kind: 'informativo', consolidavel: false },
+    { n: 2, cat: 'Remuneração Direta', name: 'Salário com Reajuste Anual', desc: 'Salário atualizado com o dissídio/reajuste da categoria (aplicado a partir de março).', rule: 'reajuste', kind: 'custo', consolidavel: true },
+    { n: 3, cat: 'Benefícios', name: 'Auxílio Alimentação / VR', desc: 'Vale-refeição e auxílio alimentação mensais (isentos de encargos via PAT).', rule: 'vr', kind: 'custo', consolidavel: true },
+    { n: 4, cat: 'Benefícios', name: 'Vale-Transporte', desc: 'Auxílio transporte subsidiado com desconto legal de 6% do salário base.', rule: 'vt', kind: 'custo', consolidavel: true },
+    { n: 5, cat: 'Benefícios', name: 'Plano de Saúde', desc: 'Assistência médica empresarial (coparticipação parcial da empresa).', rule: 'saude', kind: 'custo', consolidavel: true },
+    { n: 6, cat: 'Benefícios', name: 'Plano Odontológico', desc: 'Assistência odontológica por colaborador.', rule: 'odonto', kind: 'custo', consolidavel: true },
+    { n: 7, cat: 'Benefícios', name: 'Seguro de Vida em Grupo', desc: 'Apólice de seguro de vida obrigatória e opcional.', rule: 'seguro', kind: 'custo', consolidavel: true },
+    { n: 8, cat: 'Benefícios', name: 'Previdência Privada / Complementar', desc: 'Plano de previdência patrocinado (match de contribuição).', rule: 'prev', kind: 'custo', consolidavel: true },
+    { n: 9, cat: 'Benefícios', name: 'Auxílio Educação', desc: 'Reembolso ou subsídio para graduação, pós e cursos de idiomas.', rule: 'educacao', kind: 'custo', consolidavel: true },
+    { n: 10, cat: 'Benefícios', name: 'Auxílio Creche / Babá', desc: 'Reembolso creche conforme legislação para colaboradores elegíveis.', rule: 'creche', kind: 'custo', consolidavel: true },
+    { n: 11, cat: 'Benefícios', name: 'Complementos e Bem-estar', desc: 'Auxílio home office, Gympass e cestas de benefícios flexíveis.', rule: 'bemestar', kind: 'custo', consolidavel: true },
+    { n: 12, cat: 'Provisões e Riscos', name: '13º Salário (provisão mensal)', desc: 'Provisão contábil mensal de 1/12 avos para pagamento do 13º.', rule: 'prov13', kind: 'provisao', consolidavel: true },
+    { n: 13, cat: 'Provisões e Riscos', name: 'Férias + 1/3', desc: 'Provisão mensal de férias e abono constitucional; no modo Dias mostra o gozo por colaborador.', rule: 'provferias', kind: 'provisao', consolidavel: true, days: true },
+    { n: 14, cat: 'Provisões e Riscos', name: 'Provisão de Aviso Prévio', desc: 'Reserva mensal para aviso prévio indenizado em cenário de turnover.', rule: 'aviso', kind: 'provisao', consolidavel: true },
+    { n: 15, cat: 'Provisões e Riscos', name: 'Provisão de Multa FGTS 40%', desc: 'Reserva mensal para multa rescisória do FGTS em cenário de turnover.', rule: 'multa', kind: 'provisao', consolidavel: true },
+    { n: 16, cat: 'Adicionais e Variáveis', name: 'Horas Extras', desc: 'Remuneração de horas extraordinárias e reflexos.', rule: 'he', kind: 'custo', consolidavel: true },
+    { n: 17, cat: 'Adicionais e Variáveis', name: 'Adicional Noturno', desc: 'Adicional para jornadas em horário noturno (22h às 5h).', rule: 'noturno', kind: 'custo', consolidavel: true },
+    { n: 18, cat: 'Adicionais e Variáveis', name: 'Periculosidade / Insalubridade', desc: 'Adicionais legais de risco ou insalubridade do posto.', rule: 'peric', kind: 'custo', consolidavel: true },
+    { n: 19, cat: 'Adicionais e Variáveis', name: 'Comissões Comerciais', desc: 'Variáveis de vendas por atingimento de metas da área comercial.', rule: 'comissao', kind: 'custo', consolidavel: true },
+    { n: 20, cat: 'Adicionais e Variáveis', name: 'PLR / Bônus de Desempenho', desc: 'Participação nos lucros e resultados ou bônus anual por metas.', rule: 'plr', kind: 'custo', consolidavel: true },
+    { n: 21, cat: 'Adicionais e Variáveis', name: 'Gratificações de Função / Prêmios', desc: 'Gratificações de cargo de confiança e premiações internas.', rule: 'grat', kind: 'custo', consolidavel: true },
+    { n: 22, cat: 'Adicionais e Variáveis', name: 'Ajuda de Custo / Diárias', desc: 'Reembolsos de viagens, hospedagem e deslocamentos operacionais.', rule: 'ajuda', kind: 'custo', consolidavel: true },
+    { n: 23, cat: 'Encargos Sociais', name: 'INSS Patronal', desc: 'Contribuição previdenciária patronal sobre a folha de pagamento.', rule: 'inss', kind: 'encargo', consolidavel: true },
+    { n: 24, cat: 'Encargos Sociais', name: 'RAT / GILRAT', desc: 'Seguro de Acidentes do Trabalho conforme grau de risco da atividade.', rule: 'rat', kind: 'encargo', consolidavel: true },
+    { n: 25, cat: 'Encargos Sociais', name: 'Contribuições a Terceiros / Sistema S', desc: 'SENAI, SESC, SEBRAE, INCRA e demais contribuições do Sistema S.', rule: 'sistemas', kind: 'encargo', consolidavel: true },
+    { n: 26, cat: 'Encargos Sociais', name: 'FGTS', desc: 'Depósito mensal obrigatório na conta vinculada do FGTS.', rule: 'fgts', kind: 'encargo', consolidavel: true },
+    { n: 27, cat: 'Encargos Sociais', name: 'PIS / PASEP', desc: 'Contribuição social incidente sobre a folha de salários.', rule: 'pis', kind: 'encargo', consolidavel: true },
+    { n: 28, cat: 'Encargos Sociais', name: 'Salário-Educação', desc: 'Encargo educacional corporativo obrigatório para empresas do regime.', rule: 'salarioed', kind: 'encargo', consolidavel: true },
+    { n: 29, cat: 'Encargos Sociais', name: 'Encargos sobre o 13º', desc: 'Provisão de INSS, FGTS, RAT e demais encargos sobre a gratificação natalina.', rule: 'enc13', kind: 'encargo', consolidavel: true },
+    { n: 30, cat: 'Encargos Sociais', name: 'Encargos sobre Férias + 1/3', desc: 'Incidências de encargos sobre a provisão de férias e 1/3 constitucional.', rule: 'encferias', kind: 'encargo', consolidavel: true },
+    { n: 31, cat: 'Provisões e Riscos', name: 'Provisão para Afastamentos / Absenteísmo', desc: 'Custo de substituição ou complementação em afastamentos prolongados; no modo Dias mostra os dias provisionados.', rule: 'provafast', kind: 'provisao', consolidavel: true, days: true },
+    { n: 32, cat: 'Provisões e Riscos', name: 'Contingência para Passivo Trabalhista', desc: 'Reserva financeira prudencial para riscos e litígios trabalhistas.', rule: 'contingencia', kind: 'provisao', consolidavel: true },
+    { n: 33, cat: 'Atração e Desenvolvimento', name: 'Recrutamento & Seleção', desc: 'Custo médio por contratação (plataformas de vagas, headhunters, testes).', rule: 'rs', kind: 'custo', consolidavel: true },
+    { n: 34, cat: 'Atração e Desenvolvimento', name: 'Onboarding e Integração', desc: 'Kits boas-vindas, exames admissionais e treinamentos de integração.', rule: 'onboarding', kind: 'custo', consolidavel: true },
+    { n: 35, cat: 'Atração e Desenvolvimento', name: 'Treinamento & Desenvolvimento / Educação Corporativa', desc: 'Capacitação técnica, liderança, plataformas de EAD e certificações.', rule: 'td', kind: 'custo', consolidavel: true },
+    { n: 36, cat: 'Atração e Desenvolvimento', name: 'Software, Ferramentas e Licenças', desc: 'Licenças de sistemas por colaborador (ERP, ferramentas de produtividade).', rule: 'software', kind: 'custo', consolidavel: true },
+    { n: 37, cat: 'Operação e Indiretos', name: 'Uniformes, EPI e Identidade', desc: 'Fornecimento de vestimenta profissional, EPIs e crachás.', rule: 'epi', kind: 'custo', consolidavel: true },
+    { n: 38, cat: 'Operação e Indiretos', name: 'Comunicação e Posto de Trabalho', desc: 'Linha corporativa, chip de celular, internet e amortização de mobiliário.', rule: 'postotrab', kind: 'custo', consolidavel: true },
+    { n: 39, cat: 'Operação e Indiretos', name: 'Overhead Administrativo de RH', desc: 'Rateio de custos estruturais da gestão de pessoas e folha terceirizada.', rule: 'overhead', kind: 'custo', consolidavel: true }
 ];
 
-function totalPayroll() {
-    var t = 0;
-    COLABS.forEach(function (e) { if (e.status === 'Ativo') t += e.sal; });
-    return t;
+function setText(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = value;
 }
 
+function isEligible(e) {
+    return e.status === 'Ativo' || e.status === 'Férias' || e.status === 'Active' || e.status === 'Vacation';
+}
+function eligibleEmployees() { return COLABS.filter(isEligible); }
+function empBase(e) { return Number(e.sal || e.salary || 0); }
+function empType(e) { return e.tipo || e.contract_type || 'CLT'; }
+function isSales(e) { return e.dept === 'Comercial' || e.dept === 'Vendas' || e.dept === 'Marketing'; }
+function isOps(e) { return e.dept === 'Operações' || e.dept === 'OPS'; }
+function monthSalary(e, m) { return empBase(e) * (m >= PREMISSAS.mesReajuste ? (1 + PREMISSAS.reajuste) : 1); }
+function encRate(e) {
+    if (STATE.regime === 'simples') return PREMISSAS.fgts;
+    return PREMISSAS.inss + PREMISSAS.rat + PREMISSAS.sistemas + PREMISSAS.fgts + PREMISSAS.pis + PREMISSAS.salarioEd;
+}
+function appliesTo(q, e) {
+    var t = empType(e);
+    if (t === 'CLT') return true;
+    if (t === 'PJ') return !(q.n >= 12 && q.n <= 15) && !(q.n >= 23 && q.n <= 32);
+    if (t === 'Estágio') return [1, 3, 4].indexOf(q.n) > -1 || q.n >= 33;
+    return true;
+}
+function totalPayroll() {
+    return eligibleEmployees().reduce(function (a, e) { return a + empBase(e); }, 0);
+}
+function budgetAnnualTotal() {
+    var total = 0;
+    eligibleEmployees().forEach(function (e) {
+        QUADROS.forEach(function (q) {
+            if (!q.consolidavel || !appliesTo(q, e)) return;
+            for (var m = 0; m < 12; m++) total += getQuadroValue(e, m, q.rule);
+        });
+    });
+    return total;
+}
 function buildBudgetKPIs() {
     if (!STATE.logged) return;
-    var total = totalPayroll();
-    var annual = total * 13.3 * (1 + ENC);
-    var cph = countsAtivos() > 0 ? (annual / countsAtivos()) / 12 : 0;
-    
+    var annual = budgetAnnualTotal();
+    var heads = eligibleEmployees().length;
+    var cph = heads > 0 ? annual / heads / 12 : 0;
     setText('budg-total', fmtCur(annual));
-    setText('budg-spent', fmtCur(total * (1 + ENC)));
+    setText('budg-spent', fmtCur(annual / 12));
     setText('budg-cph', fmtCur(cph));
-    setText('budg-pct', '78.4%');
+    setText('budg-pct', heads + ' heads');
     var bar = document.getElementById('budg-pct-bar');
-    if (bar) bar.style.width = '78.4%';
+    if (bar) bar.style.width = '100%';
 }
 
 function initQuadroSelect() {
     var sel = document.getElementById('quadro-select');
     if (!sel || sel.children.length > 0) return;
-    
+
     var cats = {};
     QUADROS.forEach(function(q, i) {
         if (!cats[q.cat]) cats[q.cat] = [];
         cats[q.cat].push({ q: q, idx: i });
     });
-    
+
     Object.keys(cats).forEach(function(catName) {
         var og = document.createElement('optgroup');
         og.label = catName;
@@ -979,49 +1094,63 @@ function initQuadroSelect() {
 }
 
 function getQuadroValue(emp, monthIndex, rule) {
-    var base = emp.sal;
+    var base = monthSalary(emp, monthIndex);
+    var cargo = emp.cargo || emp.position || '';
     switch(rule) {
-        case 'base': return base;
-        case 'reajuste': return monthIndex >= 2 ? base * 1.055 : base;
-        case 'vr': return 650;
-        case 'vt': return Math.min(base * 0.06, 220);
-        case 'saude': return 520;
-        case 'odonto': return 65;
-        case 'seguro': return 45;
-        case 'prev': return base * 0.03;
-        case 'educacao': return monthIndex % 3 === 0 ? 300 : 0;
-        case 'creche': return emp.dept === 'Comercial' ? 400 : 0;
-        case 'bemestar': return 150;
-        case 'he': return (monthIndex === 5 || monthIndex === 11) ? base * 0.15 : base * 0.05;
-        case 'noturno': return emp.dept === 'Operações' ? base * 0.20 : 0;
-        case 'peric': return (emp.dept === 'Tecnologia' || emp.dept === 'Operações') ? base * 0.15 : 0;
-        case 'comissao': return emp.dept === 'Comercial' ? base * 0.25 : 0;
-        case 'plr': return (monthIndex === 5 || monthIndex === 11) ? base * 0.8 : 0;
-        case 'grat': return (emp.cargo.indexOf('Gerente') > -1 || emp.cargo.indexOf('Diretoria') > -1 || emp.cargo.indexOf('Diretora') > -1 || emp.cargo.indexOf('Head') > -1 || emp.cargo.indexOf('Arquiteta') > -1) ? 1200 : 0;
-        case 'ajuda': return 250;
-        case 'inss': return base * 0.20;
-        case 'rat': return base * 0.02;
-        case 'sistemas': return base * 0.058;
-        case 'fgts': return base * 0.08;
-        case 'pis': return base * 0.01;
-        case 'salarioed': return base * 0.025;
-        case 'enc13': return monthIndex === 11 ? base * 0.295 : 0;
-        case 'encferias': return monthIndex === 0 ? base * 0.133 : 0;
+        case 'base': return empBase(emp);
+        case 'reajuste': return base;
+        case 'vr': return PREMISSAS.vr;
+        case 'vt': return Math.min(base * PREMISSAS.vtPct, PREMISSAS.vtMax);
+        case 'saude': return PREMISSAS.saude;
+        case 'odonto': return PREMISSAS.odonto;
+        case 'seguro': return PREMISSAS.seguro;
+        case 'prev': return base * PREMISSAS.prevPct;
+        case 'educacao': return monthIndex % 3 === 0 ? PREMISSAS.educacao : 0;
+        case 'creche': return (emp.dependentes || 0) > 0 ? PREMISSAS.creche : 0;
+        case 'bemestar': return PREMISSAS.bemestar;
+        case 'he': return base * (PREMISSAS.heMeses.indexOf(monthIndex) > -1 ? PREMISSAS.heExtraPct : PREMISSAS.hePct);
+        case 'noturno': return (emp.noturno === true || (emp.noturno === undefined && isOps(emp))) ? base * PREMISSAS.noturnoPct : 0;
+        case 'peric': return (emp.peric === true || (emp.peric === undefined && isOps(emp))) ? base * PREMISSAS.pericPct : 0;
+        case 'comissao': return isSales(emp) ? base * (emp.comissaoPct || PREMISSAS.comissaoPct) : 0;
+        case 'plr': return PREMISSAS.plrMeses.indexOf(monthIndex) > -1 ? base * PREMISSAS.plrPct : 0;
+        case 'grat': return /Gerente|Diretor|Diretora|Head|Arquiteta|Tech Lead|Controller/.test(cargo) ? PREMISSAS.grat : 0;
+        case 'ajuda': return PREMISSAS.ajuda;
+        case 'inss': return STATE.regime === 'simples' ? 0 : base * PREMISSAS.inss;
+        case 'rat': return STATE.regime === 'simples' ? 0 : base * PREMISSAS.rat;
+        case 'sistemas': return STATE.regime === 'simples' ? 0 : base * PREMISSAS.sistemas;
+        case 'fgts': return base * PREMISSAS.fgts;
+        case 'pis': return STATE.regime === 'simples' ? 0 : base * PREMISSAS.pis;
+        case 'salarioed': return STATE.regime === 'simples' ? 0 : base * PREMISSAS.salarioEd;
+        case 'enc13': return (base / 12) * encRate(emp);
+        case 'encferias': return (base * (4 / 3) / 12) * encRate(emp);
         case 'prov13': return base / 12;
-        case 'provferias': return (base * 1.333) / 12;
-        case 'provrescisao': return base * 0.045;
-        case 'provafast': return base * 0.015;
-        case 'contingencia': return base * 0.02;
-        case 'rs': return 180;
-        case 'onboarding': return monthIndex === 0 ? 350 : 20;
-        case 'td': return 220;
-        case 'edcorp': return 110;
-        case 'software': return 350;
-        case 'epi': return 120;
-        case 'postotrab': return 180;
-        case 'overhead': return 210;
-        default: return base * 0.1;
+        case 'provferias': return base * (4 / 3) / 12;
+        case 'aviso': return base * PREMISSAS.avisoPct;
+        case 'multa': return base * PREMISSAS.multaPct;
+        case 'provafast': return base * PREMISSAS.afastPct;
+        case 'contingencia': return base * PREMISSAS.contingenciaPct;
+        case 'rs': return PREMISSAS.rs;
+        case 'onboarding': return monthIndex === 0 ? PREMISSAS.onboarding : PREMISSAS.onboardingRec;
+        case 'td': return PREMISSAS.td + PREMISSAS.edcorp;
+        case 'edcorp': return PREMISSAS.edcorp;
+        case 'software': return PREMISSAS.software;
+        case 'epi': return PREMISSAS.epi;
+        case 'postotrab': return PREMISSAS.postotrab;
+        case 'overhead': return PREMISSAS.overhead;
+        default: return 0;
     }
+}
+
+function getQuadroDays(emp, monthIndex, rule) {
+    if (rule === 'provferias') {
+        return (monthIndex + 1) === Number(emp.feriasMes || 1) ? Number(emp.feriasDias || 30) : 0;
+    }
+    if (rule === 'provafast') return PREMISSAS.afastDias;
+    return null;
+}
+
+function fmtDays(n) {
+    return (Math.round(Number(n) * 10) / 10).toLocaleString('pt-BR') + ' d';
 }
 
 function renderQuadro(idx) {
@@ -1029,17 +1158,44 @@ function renderQuadro(idx) {
     idx = parseInt(idx, 10);
     if (isNaN(idx) || idx < 0 || idx >= QUADROS.length) idx = 0;
     STATE.quadro = idx;
-    
+    STATE.quadroMode = STATE.quadroMode || 'money';
+    STATE.regime = STATE.regime || 'presumido';
+
     initQuadroSelect();
     var sel = document.getElementById('quadro-select');
     if (sel) sel.value = idx;
-    
+    updateModeButtons();
+    var regimeSel = document.getElementById('regime-select');
+    if (regimeSel) regimeSel.value = STATE.regime;
+
     var q = QUADROS[idx];
+    var isDays = STATE.quadroMode === 'days' && !!q.days;
     var titleTxt = document.getElementById('quadro-title-txt');
     var descTxt = document.getElementById('quadro-desc-txt');
     if (titleTxt) titleTxt.textContent = 'Quadro ' + (q.n < 10 ? '0' + q.n : q.n) + ': ' + q.name;
     if (descTxt) descTxt.textContent = q.desc;
-    
+
+    var note = document.getElementById('quadro-note');
+    if (note) {
+        if (q.n === 13) {
+            note.classList.remove('hidden');
+            note.textContent = isDays
+                ? 'Modo Dias: exibe os dias de gozo no mês informado. O abono constitucional é de até 10 dias e o total anual padrão é 30 dias.'
+                : 'Modo R$: provisão mensal de 11,11% do salário (1/12 × 4/3). Recibo estimado de férias = 1,333 × salário + encargos.';
+        } else if (q.n === 31) {
+            note.classList.remove('hidden');
+            note.textContent = isDays
+                ? 'Modo Dias: provisão de 1,5 dia por mês por colaborador (18 dias/ano).'
+                : 'Modo R$: provisão mensal de 1,5% do salário para afastamentos e absenteísmo.';
+        } else if (q.n === 1) {
+            note.classList.remove('hidden');
+            note.textContent = 'Quadro de referência: o custo efetivo de salário é consolidado no Quadro 2 para evitar dupla contagem.';
+        } else {
+            note.classList.add('hidden');
+            note.textContent = '';
+        }
+    }
+
     var meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     var thead = document.getElementById('quadro-thead');
     if (thead) {
@@ -1047,47 +1203,69 @@ function renderQuadro(idx) {
         meses.forEach(function(m) {
             hHtml += '<th class="p-4 text-right font-mono text-xs">' + m + '</th>';
         });
-        hHtml += '<th class="p-4 text-right font-bold text-xs bg-indigo-500/10">Total Ano</th></tr>';
+        hHtml += '<th class="p-4 text-right font-bold text-xs bg-indigo-500/10">TOTAL</th></tr>';
         thead.innerHTML = hHtml;
     }
-    
-    var actives = COLABS.filter(function(e) { return e.status === 'Ativo'; });
+
+    var rows = eligibleEmployees().filter(function(e) { return appliesTo(q, e); });
     var tbody = document.getElementById('quadro-tbody');
     var tfoot = document.getElementById('quadro-tfoot');
-    
+
     if (tbody && tfoot) {
         tbody.innerHTML = '';
         var monthTotals = [0,0,0,0,0,0,0,0,0,0,0,0];
         var grandTotal = 0;
-        
-        actives.forEach(function(emp) {
+
+        rows.forEach(function(emp) {
             var tr = document.createElement('tr');
             tr.className = 'table-row border-b transition-colors';
-            
-            var rowHtml = '<td class="p-4 sticky left-0 z-10 surface-card"><span class="tcell-strong font-semibold block">' + (emp.nome || emp.name) + '</span><span class="tcell-muted text-xs block">' + emp.dept + ' · ' + emp.cargo + '</span></td>';
+            var nome = emp.nome || emp.name;
+            var cargo = emp.cargo || (emp.position ? emp.position : '');
+            var rowHtml = '<td class="p-4 sticky left-0 z-10 surface-card"><span class="tcell-strong font-semibold block">' + nome + '</span><span class="tcell-muted text-xs block">' + emp.dept + ' · ' + cargo + '</span></td>';
             var empRowTotal = 0;
-            
+
             for (var m = 0; m < 12; m++) {
-                var val = getQuadroValue(emp, m, q.rule);
+                var val = isDays ? getQuadroDays(emp, m, q.rule) : getQuadroValue(emp, m, q.rule);
+                val = Number(val) || 0;
                 empRowTotal += val;
                 monthTotals[m] += val;
                 grandTotal += val;
-                rowHtml += '<td class="p-4 text-right font-mono text-xs tcell-mono">' + fmtCur(val) + '</td>';
+                rowHtml += '<td class="p-4 text-right font-mono text-xs tcell-mono">' + (isDays ? fmtDays(val) : fmtCur(val)) + '</td>';
             }
-            rowHtml += '<td class="p-4 text-right font-mono text-xs font-bold tcell-strong bg-indigo-500/10">' + fmtCur(empRowTotal) + '</td>';
+            rowHtml += '<td class="p-4 text-right font-mono text-xs font-bold tcell-strong bg-indigo-500/10">' + (isDays ? fmtDays(empRowTotal) : fmtCur(empRowTotal)) + '</td>';
             tr.innerHTML = rowHtml;
             tbody.appendChild(tr);
         });
-        
-        var fHtml = '<tr class="bg-indigo-500/15 font-bold"><td class="p-4 sticky left-0 z-10 surface-card">TOTAL GERAL MENSAL</td>';
+
+        var fHtml = '<tr class="bg-indigo-500/15 font-bold"><td class="p-4 sticky left-0 z-10 surface-card">TOTAL GERAL ' + (isDays ? 'DIAS' : 'MENSAL') + '</td>';
         monthTotals.forEach(function(mt) {
-            fHtml += '<td class="p-4 text-right font-mono text-xs">' + fmtCur(mt) + '</td>';
+            fHtml += '<td class="p-4 text-right font-mono text-xs">' + (isDays ? fmtDays(mt) : fmtCur(mt)) + '</td>';
         });
-        fHtml += '<td class="p-4 text-right font-mono text-xs text-indigo-600 dark:text-cyan-400">' + fmtCur(grandTotal) + '</td></tr>';
+        fHtml += '<td class="p-4 text-right font-mono text-xs text-indigo-600 dark:text-cyan-400">' + (isDays ? fmtDays(grandTotal) : fmtCur(grandTotal)) + '</td></tr>';
         tfoot.innerHTML = fHtml;
     }
-    
+
     buildBudgetKPIs();
+}
+
+function updateModeButtons() {
+    var money = document.getElementById('mode-money');
+    var days = document.getElementById('mode-days');
+    if (!money || !days) return;
+    var isDays = STATE.quadroMode === 'days';
+    money.className = 'px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ' + (isDays ? 'surface-card opacity-60' : 'bg-indigo-500/20 text-indigo-500 dark:text-cyan-300');
+    days.className = 'px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-l ' + (isDays ? 'bg-indigo-500/20 text-indigo-500 dark:text-cyan-300' : 'surface-card opacity-60');
+}
+
+function setQuadroMode(mode) {
+    STATE.quadroMode = mode;
+    updateModeButtons();
+    renderQuadro(STATE.quadro || 0);
+}
+
+function setRegime(value) {
+    STATE.regime = value;
+    renderQuadro(STATE.quadro || 0);
 }
 
 function onQuadroChange(val) {
@@ -1106,6 +1284,39 @@ function nextQuadro() {
 
 function renderBudget() {
     renderQuadro(STATE.quadro || 0);
+}
+
+function openSimFromBudget() {
+    goView('simulator');
+}
+
+var vacCpf = null;
+function openVacation(cpf) {
+    var emp = COLABS.filter(function(e) { return e.cpf === cpf; })[0];
+    if (!emp) return;
+    vacCpf = cpf;
+    document.getElementById('vac-name').textContent = emp.nome;
+    document.getElementById('vac-month').value = emp.feriasMes || 1;
+    document.getElementById('vac-days').value = emp.feriasDias || 30;
+    document.getElementById('vac-abono').value = emp.abonoDias || 0;
+    var modal = document.getElementById('vac-modal');
+    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+}
+function closeVacation() {
+    var modal = document.getElementById('vac-modal');
+    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    vacCpf = null;
+}
+function saveVacation() {
+    var emp = COLABS.filter(function(e) { return e.cpf === vacCpf; })[0];
+    if (!emp) return;
+    emp.feriasMes = parseInt(document.getElementById('vac-month').value, 10) || 1;
+    emp.feriasDias = Math.max(0, Math.min(30, parseInt(document.getElementById('vac-days').value, 10) || 0));
+    emp.abonoDias = Math.max(0, Math.min(10, parseInt(document.getElementById('vac-abono').value, 10) || 0));
+    closeVacation();
+    renderEmployees();
+    if (STATE.quadro !== undefined) renderQuadro(STATE.quadro);
+    toast('Férias atualizadas para ' + emp.nome, 'ok');
 }
 
 /* ===== Simulador ===== */
@@ -1162,7 +1373,7 @@ function renderResult(nb, cb, cn) {
 function renderSimDetail(rea, hir, sal) {
     var el = document.getElementById('sim-new-cph');
     if (el) {
-        var active = COLABS.filter(function (x) { return x.status === 'Ativo' && x.tipo !== 'Estágio'; }).length + hir;
+        var active = COLABS.filter(function (x) { return isEligible(x) && x.tipo !== 'Estágio'; }).length + hir;
         el.textContent = 'R$ ' + fmt((STATE.sim.newBase * (1 + STATE.sim.enc / 100)) / Math.max(1, active));
     }
 }
@@ -1216,10 +1427,10 @@ function init() {
 /* ===== Dashboard (KPIs + resumo) ===== */
 function renderDashboard() {
     if (!STATE.logged) return;
-    var ativos = COLABS.filter(function (e) { return e.status === 'Ativo'; });
-    var totalBase = ativos.reduce(function (a, e) { return a + e.sal; }, 0);
+    var ativos = eligibleEmployees();
+    var totalBase = ativos.reduce(function (a, e) { return a + empBase(e); }, 0);
     var folhaTotal = totalBase * (1 + ENC / 100);
-    var anual = folhaTotal * 13;
+    var anual = budgetAnnualTotal();
 
     setText('kpi-head', ativos.length);
     setText('kpi-payroll', fmtCur(totalBase));

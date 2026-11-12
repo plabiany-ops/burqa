@@ -28,6 +28,11 @@ class Employee(models.Model):
         ('Vacation', 'Férias'),
         ('Terminated', 'Desligado'),
     ]
+    CONTRACT_CHOICES = [
+        ('CLT', 'CLT'),
+        ('PJ', 'PJ'),
+        ('Estágio', 'Estágio'),
+    ]
     name = models.CharField(max_length=150)
     cpf = models.CharField(max_length=14, unique=True)
     email = models.EmailField(blank=True, null=True)
@@ -37,13 +42,20 @@ class Employee(models.Model):
     benefits_cost = models.DecimalField(max_digits=10, decimal_places=2, default=1200.00)
     hire_date = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
+    contract_type = models.CharField(max_length=20, choices=CONTRACT_CHOICES, default='CLT')
+    vacation_month = models.PositiveSmallIntegerField(default=1)
+    vacation_days = models.PositiveSmallIntegerField(default=30)
+    vacation_abono_days = models.PositiveSmallIntegerField(default=0)
+    dependents = models.PositiveSmallIntegerField(default=0)
+    night_shift = models.BooleanField(default=False)
+    hazard = models.BooleanField(default=False)
+    commission_pct = models.DecimalField(max_digits=5, decimal_places=4, default=0)
 
     def __str__(self):
         return f"{self.name} - {self.position.title}"
 
     @property
     def total_cost(self):
-        # Salary + Benefits + Estimated 35% taxes/charges (INSS, FGTS, Provisões)
         charges = self.salary * 0.35
         return self.salary + self.benefits_cost + charges
 

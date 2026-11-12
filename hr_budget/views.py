@@ -13,7 +13,7 @@ class CustomLoginView(LoginView):
 
 @login_required
 def dashboard_view(request):
-    employees = Employee.objects.filter(status='Active')
+    employees = Employee.objects.filter(status__in=['Active', 'Vacation'])
     total_employees = employees.count()
     
     # Aggregates
@@ -68,7 +68,7 @@ def employees_view(request):
 
 @login_required
 def budget_view(request):
-    active_employees = Employee.objects.filter(status='Active')
+    active_employees = Employee.objects.filter(status__in=['Active', 'Vacation'])
     
     total_monthly_salary = active_employees.aggregate(s=Sum('salary'))['s'] or Decimal('0.00')
     annual_payroll = total_monthly_salary * Decimal('12')
@@ -102,6 +102,15 @@ def budget_view(request):
             'cargo': e.position.title,
             'level': e.position.level,
             'sal': float(e.salary),
+            'tipo': e.contract_type,
+            'status': e.status,
+            'feriasMes': e.vacation_month,
+            'feriasDias': e.vacation_days,
+            'abonoDias': e.vacation_abono_days,
+            'dependentes': e.dependents,
+            'noturno': e.night_shift,
+            'peric': e.hazard,
+            'comissaoPct': float(e.commission_pct),
         }
         for e in active_employees
     ]
@@ -118,7 +127,7 @@ def budget_view(request):
 
 @login_required
 def simulator_view(request):
-    active_employees = Employee.objects.filter(status='Active')
+    active_employees = Employee.objects.filter(status__in=['Active', 'Vacation'])
     base_headcount = active_employees.count()
     base_monthly_salary = active_employees.aggregate(s=Sum('salary'))['s'] or Decimal('0.00')
     base_monthly_benefits = active_employees.aggregate(b=Sum('benefits_cost'))['b'] or Decimal('0.00')

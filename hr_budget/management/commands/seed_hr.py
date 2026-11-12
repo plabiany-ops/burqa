@@ -125,6 +125,8 @@ class Command(BaseCommand):
             hire_date = start_date + timedelta(days=random.randint(0, days_between))
 
             status = random.choices(['Active', 'Vacation', 'Terminated'], weights=[85, 10, 5])[0]
+            contract_type = random.choices(['CLT', 'PJ', 'Estágio'], weights=[75, 18, 7])[0]
+            abono = random.choice([0, 0, 0, 5, 10])
 
             Employee.objects.create(
                 name=name,
@@ -135,7 +137,15 @@ class Command(BaseCommand):
                 salary=salary,
                 benefits_cost=benefits,
                 hire_date=hire_date,
-                status=status
+                status=status,
+                contract_type=contract_type,
+                vacation_month=random.randint(1, 12),
+                vacation_days=30,
+                vacation_abono_days=abono,
+                dependents=random.randint(0, 3),
+                night_shift=(dept_code == 'OPS' and random.random() < 0.5),
+                hazard=(dept_code == 'OPS'),
+                commission_pct=(0.25 if dept_code == 'VEN' else 0),
             )
             created_count += 1
 
